@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 const cheerio = require("cheerio");
 
-const query = "netmot.exe?SearchWord=*&dic=1&page=list&UI=fi80&Start=0"
+const query = "netmot.exe?SearchWord=*&dic=1&page=list&UI=fi80&Start="
 const baseUrl = "https://2018.kielitoimistonsanakirja.fi/";
 
 const minDelay = 10 * 1000; // seconds
@@ -9,30 +9,40 @@ const maxDelay = minDelay;
 const waitEvery = 1;
 
 const main = async () => {
-    const res = await fetch(baseUrl + query);
-    const body = await res.text();
-    const $ = cheerio.load(body);
-    
-    console.log(res.status);
-    if(res.status !== 200) {
-        return;
-    }
-    
-    let words = scrapeWords($);
-    
-    for(let i=0, count=words.length; i < count; i++) {
-        if(i % waitEvery === 0 && i !== 0) {
-            await sleep(randomNumber(minDelay, maxDelay));
+    let start = 102000;
+
+    while(true) {
+        const res = await fetch(baseUrl + query + start);
+        const body = await res.text();
+        const $ = cheerio.load(body);
+        
+        console.log(res.status);
+        if(res.status !== 200) {
+            return;
+        }
+        
+        let words = scrapeWords($);
+
+        if(words.length === 0) {
+            console.log("Done scraping.");
+            return;
         }
 
-        words[i].definition = await scrapeDefinitions(words[i].link);
-
-        if(!words[i].definition) {
-            console.log(`${i}: Got captcha at: ${words[i].word}`);
-            process.exit();
+        for(let i=0, count=words.length; i < count; i++) {
+            if(i % waitEvery === 0 && i !== 0) {
+                await sleep(randomNumber(minDelay, maxDelay));
+            }
+    
+            words[i].definition = await scrapeDefinitions(words[i].link);
+    
+            if(!words[i].definition) {
+                console.log(`${i}: Got captcha at: ${words[i].word}`);
+                process.exit();
+            }
+    
+            console.log(`${i}: ${words[i].word} - ${words[i].definition}`);
         }
-
-        console.log(`${i}: ${words[i].word} - ${words[i].definition}`);
+        start += words.length;
     }
 }
 
