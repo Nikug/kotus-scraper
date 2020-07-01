@@ -1,5 +1,9 @@
+require("dotenv").config();
 const fetch = require("node-fetch");
 const cheerio = require("cheerio");
+const mongoose = require("mongoose");
+
+const Word = require("./word");
 
 const query = "netmot.exe?SearchWord=*&dic=1&page=list&UI=fi80&Start="
 const baseUrl = "https://2018.kielitoimistonsanakirja.fi/";
@@ -9,7 +13,13 @@ const maxDelay = minDelay;
 const waitEvery = 1;
 
 const main = async () => {
-    let start = 102000;
+
+    await connectDatabase();
+
+
+
+
+    let start = 0;
 
     while(true) {
         const res = await fetch(baseUrl + query + start);
@@ -25,7 +35,7 @@ const main = async () => {
 
         if(words.length === 0) {
             console.log("Done scraping.");
-            return;
+            break;
         }
 
         for(let i=0, count=words.length; i < count; i++) {
@@ -41,6 +51,18 @@ const main = async () => {
             }
     
             console.log(`${i}: ${words[i].word} - ${words[i].definition}`);
+            let newWord = new Word({
+                word: words[i].word,
+                link: words[i].link,
+                definition: words[i].definition
+            });
+            const existingWord = await Word.getWord(newWord.word);
+            if(existingWord) {
+                console.log(`Word ${newWord.word} exists already, skipping.`);
+            } else {
+                await Word.addWord(newWord);
+            }
+
         }
         start += words.length;
     }
@@ -86,6 +108,16 @@ const scrapeDefinitions = async (link) => {
     definition = definition.charAt(0).toUpperCase() + definition.slice(1);
 
     return(definition);
+}
+
+const connectDatabase = async() => {
+    try {
+        await mongoose.connect(`mongodb+srv://${process.env.DBUSER}:${process.env.DBPASSWORD}@mongo-v8pg3.mongodb.net/${process.env.DBNAME}?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
+        console.log("Connected to database");
+    } catch (err) {
+        console.log("Failed to connect to database. Quitting...");
+        process.exit();
+    }
 }
 
 const sleep = (ms) => {
