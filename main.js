@@ -15,11 +15,8 @@ const waitEvery = 1;
 const main = async () => {
 
     await connectDatabase();
-
-
-
-
-    let start = 0;
+    const count = await Word.getWordCount();
+    let start = count;
 
     while(true) {
         const res = await fetch(baseUrl + query + start);
@@ -53,7 +50,7 @@ const main = async () => {
             console.log(`${i}: ${words[i].word} - ${words[i].definition}`);
             let newWord = new Word({
                 word: words[i].word,
-                link: words[i].link,
+                link: baseUrl + words[i].link,
                 definition: words[i].definition
             });
             const existingWord = await Word.getWord(newWord.word);

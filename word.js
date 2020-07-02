@@ -29,3 +29,14 @@ module.exports.getWord = async (word) => {
         process.exit();
     }
 }
+
+module.exports.getWordCount = async () =>  {
+    try {
+        const count = await Word.countDocuments({});
+        return(count);
+    } catch (err) {
+        console.log(`Could not count words`);
+        console.error(err);
+        process.exit();
+    }
+}
