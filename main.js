@@ -8,7 +8,7 @@ const Word = require("./word");
 const query = "netmot.exe?SearchWord=*&dic=1&page=list&UI=fi80&Start="
 const baseUrl = "https://2018.kielitoimistonsanakirja.fi/";
 
-const minDelay = 10 * 1000; // seconds
+const minDelay = 12 * 1000; // seconds
 const maxDelay = minDelay;
 const waitEvery = 1;
 
