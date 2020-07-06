@@ -25,7 +25,7 @@ const main = async () => {
         
         console.log(res.status);
         if(res.status !== 200) {
-            return;
+            process.exit();
         }
         
         let words = scrapeWords($);
@@ -81,6 +81,12 @@ const scrapeWords = ($) => {
 
 const scrapeDefinitions = async (link) => {
     const res = await fetch(baseUrl + link);
+
+    if(res.status !== 200) {
+        console.log(`Got status ${res.status} while on link: ${baseUrl + link}`);
+        process.exit();
+    }
+
     const body = await res.text();
     const $ = cheerio.load(body);
 
