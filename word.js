@@ -40,3 +40,14 @@ module.exports.getWordCount = async () =>  {
         process.exit();
     }
 }
+
+module.exports.getAllWords = async () => {
+    try {
+        const words = await Word.find({});
+        return(words);
+    } catch (err) {
+        console.log(`Could not count words`);
+        console.error(err);
+        process.exit();
+    }
+}
