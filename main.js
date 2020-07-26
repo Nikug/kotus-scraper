@@ -11,6 +11,13 @@ const baseUrl = "https://2018.kielitoimistonsanakirja.fi/";
 const minDelay = 15 * 1000; // seconds
 const maxDelay = minDelay;
 const waitEvery = 1;
+const getDefinitions = false;
+const emptyDefinition = "-";
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0";
+
+const headers = {
+    "User-Agent": userAgent
+}
 
 const main = async () => {
 
@@ -19,7 +26,7 @@ const main = async () => {
     let start = count;
 
     while(true) {
-        const res = await fetch(baseUrl + query + start);
+        const res = await fetch(baseUrl + query + start, { headers: headers });
         const body = await res.text();
         const $ = cheerio.load(body);
         
@@ -36,11 +43,15 @@ const main = async () => {
         }
 
         for(let i=0, count=words.length; i < count; i++) {
-            if(i % waitEvery === 0 && i !== 0) {
+            if(i % waitEvery === 0 && getDefinitions) {
                 await sleep(randomNumber(minDelay, maxDelay));
             }
-    
-            words[i].definition = await scrapeDefinitions(words[i].link);
+            
+            if(getDefinitions) {
+                words[i].definition = await scrapeDefinitions(words[i].link);
+            } else {
+                words[i].definition = emptyDefinition;
+            }
     
             if(!words[i].definition) {
                 console.log(`${i}: Got captcha at: ${words[i].word}`);
@@ -80,7 +91,7 @@ const scrapeWords = ($) => {
 }
 
 const scrapeDefinitions = async (link) => {
-    const res = await fetch(baseUrl + link);
+    const res = await fetch(baseUrl + link, { headers: headers });
 
     if(res.status !== 200) {
         console.log(`Got status ${res.status} while on link: ${baseUrl + link}`);
