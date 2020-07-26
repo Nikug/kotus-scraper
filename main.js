@@ -43,7 +43,7 @@ const main = async () => {
         }
 
         for(let i=0, count=words.length; i < count; i++) {
-            if(i % waitEvery === 0 && getDefinitions) {
+            if(i % waitEvery === 0 && i !== 0 && getDefinitions) {
                 await sleep(randomNumber(minDelay, maxDelay));
             }
             
@@ -73,6 +73,9 @@ const main = async () => {
 
         }
         start += words.length;
+        if(!getDefinitions) {
+            await sleep(randomNumber(minDelay, maxDelay));
+        }
     }
 }
 
